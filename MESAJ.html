@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yılbaşı Kar Küresi</title>
+
+<style>
+  body{
+    margin:0;
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    background:radial-gradient(circle at 70% 20%,#0d1b2a,#02070d);
+    font-family:"Segoe UI",sans-serif;
+    color:#eef4fb;
+  }
+
+  .globe-wrap{
+    width:min(360px,92vw);
+    display:grid;
+    gap:10px;
+    justify-items:center;
+    position:relative;
+  }
+
+  /* 📌 Yazılar büyütüldü */
+  .message{
+    font-size:18px;
+    font-family:"Brush Script MT",cursive;
+    color:#ffd772;
+    text-align:center;
+    opacity:0;
+    transition:opacity 1.2s ease;
+    margin-top:14px;
+    line-height:1.45;
+  }
+
+  .message .title{
+    font-family:"Segoe UI",sans-serif;
+    font-weight:bold;
+    letter-spacing:1px;
+    font-size:20px;
+  }
+
+  .globe{
+    width:100%;
+    aspect-ratio:1 / 1;
+    border-radius:50%;
+    position:relative;
+    overflow:hidden;
+    background:radial-gradient(circle at 50% 45%,#bde0ff,#5ca1db);
+    box-shadow:0 8px 32px rgba(0,0,0,.45),
+               inset 0 0 40px rgba(255,255,255,.25);
+    border:2px solid rgba(255,255,255,.35);
+    transition:transform .3s ease;
+  }
+
+  canvas{width:100%;height:100%;}
+
+  .globe.shake{animation:shake .6s ease}
+  @keyframes shake{
+    0%{transform:rotate(0)}
+    25%{transform:rotate(2deg)}
+    50%{transform:rotate(-2deg)}
+    75%{transform:rotate(2deg)}
+    100%{transform:rotate(0)}
+  }
+
+  .snow-bed{
+    position:absolute;
+    bottom:-8%; left:-8%;
+    width:116%; height:40%;
+    background:radial-gradient(280px circle at 50% 0%,#fff 0%,#f3f7fb 60%,rgba(255,255,255,0) 100%);
+    clip-path:ellipse(60% 48% at 50% 40%);
+  }
+
+  .base{
+    width:60%;
+    height:46px;
+    border-radius:12px;
+    background:linear-gradient(#3b2c20,#1f160f);
+    box-shadow:0 4px 12px rgba(0,0,0,.4);
+    display:grid;
+    place-items:center;
+  }
+
+  .btn{
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    background:#ffd772;
+    color:#2a1f17;
+    font-weight:bold;
+    cursor:pointer;
+    touch-action:manipulation;
+    font-size:16px;
+  }
+
+  .scene{
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+  }
+</style>
+</head>
+
+<body>
+<div class="globe-wrap">
+
+  <!-- 📌 Daha büyük ve okunabilir metin -->
+  <div class="message" id="msg">
+    <span class="title">MUTLU YILLAR</span><br>
+    Kar taneleri gibi sürprizliyim.<br>
+    Belki yeni yılda seni daha çok şaşırtırım...
+  </div>
+
+  <div class="globe" id="globe">
+    <canvas id="snow" width="320" height="320"></canvas>
+
+    <div class="scene">
+      <svg width="210" height="210" viewBox="0 0 210 210">
+        <circle cx="165" cy="16" r="14" fill="#fdf6e3"/>
+        <circle cx="170" cy="16" r="10" fill="#5ca1db"/>
+
+        <polygon points="105,40 75,85 135,85" fill="#1f7a45"/>
+        <polygon points="105,70 65,115 145,115" fill="#1a6a3b"/>
+        <polygon points="105,100 55,145 155,145" fill="#155c33"/>
+        <rect x="98" y="140" width="14" height="24" rx="3" fill="#7a4a28"/>
+
+        <polygon points="105,28 110,38 122,40 112,48 114,60 105,53 96,60 98,48 88,40 100,38" fill="#ffd772"/>
+
+        <rect x="68" y="150" width="26" height="18" rx="3" fill="#ff6b6b"/>
+        <rect x="124" y="152" width="24" height="16" rx="3" fill="#74c0fc"/>
+      </svg>
+    </div>
+
+    <div class="snow-bed"></div>
+  </div>
+
+  <div class="base">
+    <button class="btn" id="shakeBtn">Salla</button>
+  </div>
+</div>
+
+<script>
+const canvas=document.getElementById("snow");
+const ctx=canvas.getContext("2d");
+
+function scaleCanvas(){
+  const ratio=window.devicePixelRatio||1;
+  canvas.width=320*ratio;
+  canvas.height=320*ratio;
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+}
+scaleCanvas();
+
+const W=320,H=320;
+const flakes=[];let snowing=false;
+
+function rand(a,b){return Math.random()*(b-a)+a;}
+
+function makeFlake(){
+  const isHeart=Math.random()<0.03;
+  return{
+    x:rand(0,W),y:rand(0,H),
+    r:rand(1.5,3),d:rand(1,2),
+    color:isHeart?"#ff4d4d":"#ffffff",
+    shape:isHeart?"heart":"crystal"
+  };
+}
+
+for(let i=0;i<168;i++)flakes.push(makeFlake());
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  if(!snowing)return;
+
+  for(const f of flakes){
+    ctx.fillStyle=f.color;
+    ctx.beginPath();
+
+    if(f.shape==="heart"){
+      const{x,y,r}=f;
+      ctx.moveTo(x,y);
+      ctx.bezierCurveTo(x,y-r,x-r,y-r,x-r,y);
+      ctx.bezierCurveTo(x-r,y+r,x,y+r*1.5,x,y+r*2);
+      ctx.bezierCurveTo(x,y+r*1.5,x+r,y+r,x+r,y);
+      ctx.bezierCurveTo(x+r,y-r,x,y-r,x,y);
+    } else {
+      const{x,y,r}=f;
+      ctx.moveTo(x,y-r);
+      for(let i=0;i<12;i++){
+        const a=(i*Math.PI)/6;
+        const s=i%2===0?r:r*0.45;
+        ctx.lineTo(x+s*Math.cos(a),y+s*Math.sin(a));
+      }
+      ctx.closePath();
+    }
+
+    ctx.fill();
+  }
+  update();
+}
+
+function update(){
+  for(const f of flakes){
+    f.y+=f.d;
+    f.x+=Math.sin(f.y*0.01)*0.25;
+    if(f.y>H+2){
+      f.y=-2;
+      f.x=rand(0,W);
+      const isHeart=Math.random()<0.03;
+      f.color=isHeart?"#ff4d4d":"#ffffff";
+      f.shape=isHeart?"heart":"crystal";
+    }
+  }
+}
+
+setInterval(draw,33);
+
+const msg=document.getElementById("msg");
+const globe=document.getElementById("globe");
+const btn=document.getElementById("shakeBtn");
+
+btn.addEventListener("click",()=>{
+  snowing=true;
+  msg.style.opacity=1;
+  globe.classList.add("shake");
+  setTimeout(()=>globe.classList.remove("shake"),600);
+});
+
+window.addEventListener("resize",scaleCanvas);
+</script>
+</body>
+</html>
